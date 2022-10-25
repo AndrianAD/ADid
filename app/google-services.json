@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1092686898068",
+    "firebase_url": "https://adid-4f271-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "adid-4f271",
+    "storage_bucket": "adid-4f271.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1092686898068:android:3ddee8efce64faa912e581",
+        "android_client_info": {
+          "package_name": "com.example.adid"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1092686898068-j3061u3pm52aun9gqn6gq7mea3tktoln.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.adid",
+            "certificate_hash": "3d704041a72be8bc60ba21b89790cf8955de1cf2"
+          }
+        },
+        {
+          "client_id": "1092686898068-mmrr3t27hkkj7jfpjvrfj2ljp99h8kon.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQN-d0P3fdHdHTmZiVkb4W9u0I2Iv4lNE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1092686898068-mmrr3t27hkkj7jfpjvrfj2ljp99h8kon.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
