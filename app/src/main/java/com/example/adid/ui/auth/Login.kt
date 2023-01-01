@@ -1,11 +1,15 @@
-package com.example.adid.ui
+package com.example.adid.ui.auth
 
+import android.app.Activity
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -14,39 +18,52 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpScreen(
+fun LoginScreen(
     loginViewModel: LoginViewModel,
-    onNavToLogInPage: () -> Unit,
+    onNavToSignUpPage: () -> Unit,
     onNavToHomePage: () -> Unit,
 ) {
+    var pressedTime: Long = 0
     val loginState = loginViewModel.loginState
-    val isError = loginState.signUpError != null
+    val isError = loginState.loginError != null
     val context = LocalContext.current
+
+    BackHandler {
+        if (pressedTime + 2000 > System.currentTimeMillis()) {
+            (context as? Activity)?.finish()
+        } else {
+            Toast.makeText(context, "Press back again to exit", Toast.LENGTH_SHORT).show();
+        }
+        pressedTime = System.currentTimeMillis();
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "SignUp",
+            text = "Login",
             style = MaterialTheme.typography.displayLarge,
             fontWeight = FontWeight.Black,
             color = MaterialTheme.colorScheme.primary,
         )
         if (isError) {
             Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 text = loginState.loginError ?: "Unknown Error",
                 color = MaterialTheme.colorScheme.error,
             )
         }
 
-
         OutlinedTextField(
-            value = loginState.userNameSignUp,
+            value = loginState.userNameLogin,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            onValueChange = loginViewModel::onUserNameSignUpChanged,
+            onValueChange = loginViewModel::onUserNameLoginChanged,
             leadingIcon = {
                 Icon(imageVector = Icons.Default.Person, null)
             },
@@ -58,11 +75,11 @@ fun SignUpScreen(
 
 
         OutlinedTextField(
-            value = loginState.passwordSignUp,
+            value = loginState.passwordLogin,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            onValueChange = loginViewModel::onPasswordSignUpChanged,
+            onValueChange = loginViewModel::onPasswordLoginChanged,
             leadingIcon = {
                 Icon(imageVector = Icons.Default.Lock, null)
             },
@@ -72,40 +89,34 @@ fun SignUpScreen(
             isError = isError
         )
 
-        OutlinedTextField(
-            value = loginState.confirmPasswordSignUp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            onValueChange = loginViewModel::onConfirmPasswordSignUpChanged,
-            leadingIcon = {
-                Icon(imageVector = Icons.Default.Lock, null)
-            },
-            label = {
-                Text(text = "Password Confirmation")
-            },
-            isError = isError
-        )
-
         Button(onClick = {
-            loginViewModel.createUser(context)
+            loginViewModel.loginUser()
         }) {
-            Text(text = "Sign Up")
+            Text(text = "Sign In")
         }
         Spacer(modifier = Modifier.size(16.dp))
+
         Row(modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Already have an Account?")
+            Text("Don't have an Account?")
             Spacer(modifier = Modifier.size(8.dp))
-            TextButton(onClick = { onNavToLogInPage.invoke() }) {
-                Text(text = "Sign In")
+            TextButton(
+                onClick = { onNavToSignUpPage.invoke() }) {
+                Text(text = "Sign Up")
             }
         }
 
         if (loginState.isLoading) {
             CircularProgressIndicator()
         }
+
+        LaunchedEffect(key1 = loginViewModel.hasUser(), block = {
+            if (loginViewModel.hasUser()) {
+                onNavToHomePage.invoke()
+            }
+        })
 
     }
 

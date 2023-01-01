@@ -5,7 +5,6 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -15,14 +14,21 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
 
     override fun hasUser(): Boolean = Firebase.auth.currentUser != null
 
-    override fun getUserId(): String = Firebase.auth.currentUser?.uid.orEmpty()
-
-    override suspend fun createUser(email: String, password: String, onComplete: (Boolean) -> Unit) {
+    override suspend fun createUser(
+        email: String,
+        password: String,
+        onComplete: (Boolean) -> Unit,
+        onError: (e: Exception) -> Unit,
+    ) {
         withContext(Dispatchers.IO) {
             Firebase.auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {
-                onComplete(it.isSuccessful)
+                if (it.isSuccessful) {
+                    onComplete(true)
+                } else {
+                    it.exception?.let { exception -> onError(exception) }
+                }
             }
-        }.await()
+        }
     }
 
     override suspend fun login(email: String, password: String, onComplete: (Boolean) -> Unit) {
@@ -30,8 +36,11 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
             Firebase.auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
                 onComplete(it.isSuccessful)
             }
-        }.await()
+        }
     }
 
+    override suspend fun logout() {
+        Firebase.auth.signOut()
+    }
 
 }

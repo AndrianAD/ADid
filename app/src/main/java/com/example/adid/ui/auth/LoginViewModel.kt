@@ -1,30 +1,22 @@
-package com.example.adid.ui
+package com.example.adid.ui.auth
 
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.adid.domain.repo.AuthRepository
+import com.example.adid.data.repo.AuthRepositoryImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val savedStateHandle: SavedStateHandle,
+    private val authRepository: AuthRepositoryImpl,
 ) : ViewModel() {
 
     var loginState by mutableStateOf(LoginState())
         private set
-
-//    val state= combine(loginState){
-//        loginState=loginState
-//    }.stateIn(viewModelScope,SharingStarted.WhileSubscribed(5000))
 
     fun onUserNameLoginChanged(userNameLogin: String) {
         loginState = loginState.copy(userNameLogin = userNameLogin)
@@ -48,10 +40,14 @@ class LoginViewModel @Inject constructor(
 
     fun validateLoginForm() = loginState.userNameLogin.isNotBlank() && loginState.passwordLogin.isNotBlank()
 
-
     private fun validateSignUpForm() = loginState.userNameSignUp.isNotBlank() && loginState.passwordSignUp.isNotBlank()
 
-    fun createUser(context: Context) {
+    fun hasUser(): Boolean {
+        return authRepository.hasUser()
+    }
+
+    fun createUser() {
+        loginState = loginState.copy(signUpError = null)
         viewModelScope.launch {
             try {
                 if (!validateSignUpForm()) {
@@ -61,16 +57,16 @@ class LoginViewModel @Inject constructor(
                     throw IllegalArgumentException("Confirm Password does not match")
                 }
                 loginState = loginState.copy(isLoading = true)
-                loginState = loginState.copy(signUpError = null)
-                authRepository.createUser(loginState.userNameSignUp, loginState.passwordSignUp) { isSuccessful ->
+
+                authRepository.createUser(loginState.userNameSignUp, loginState.passwordSignUp, onComplete = { isSuccessful ->
                     loginState = if (isSuccessful) {
-                        Toast.makeText(context, "User Created", Toast.LENGTH_SHORT).show()
                         loginState.copy(isSuccessLogin = true)
                     } else {
-                        Toast.makeText(context, "Failed SignUp", Toast.LENGTH_SHORT).show()
                         loginState.copy(isSuccessLogin = false)
                     }
-                }
+                }, onError = { exception ->
+                    loginState = loginState.copy(signUpError = exception.localizedMessage)
+                })
             } catch (e: Exception) {
                 loginState = loginState.copy(signUpError = e.localizedMessage)
             } finally {
@@ -79,7 +75,7 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun loginUser(context: Context) {
+    fun loginUser() {
         viewModelScope.launch {
             try {
                 if (!validateLoginForm()) {
@@ -89,10 +85,8 @@ class LoginViewModel @Inject constructor(
                 loginState = loginState.copy(loginError = null)
                 authRepository.login(loginState.userNameLogin, loginState.passwordLogin) { isSuccessful ->
                     loginState = if (isSuccessful) {
-                        Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
                         loginState.copy(isSuccessLogin = true)
                     } else {
-                        Toast.makeText(context, "Failed Login", Toast.LENGTH_SHORT).show()
                         loginState.copy(isSuccessLogin = false)
                     }
                 }
@@ -104,7 +98,6 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-
 }
 
 data class LoginState(
@@ -115,6 +108,6 @@ data class LoginState(
     var confirmPasswordSignUp: String = "",
     var isLoading: Boolean = false,
     var isSuccessLogin: Boolean = false,
-    var loginError: String? = "",
-    var signUpError: String? = "",
+    var loginError: String? = null,
+    var signUpError: String? = null,
 )

@@ -5,10 +5,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.adid.ui.Home
-import com.example.adid.ui.LoginScreen
-import com.example.adid.ui.LoginViewModel
-import com.example.adid.ui.SignUpScreen
+import com.example.adid.ui.*
+import com.example.adid.ui.auth.LoginScreen
+import com.example.adid.ui.auth.LoginViewModel
+import com.example.adid.ui.auth.SignUpScreen
+import com.example.adid.ui.home.Home
 
 const val LOGIN = "LOGIN"
 const val SIGN_UP = "SIGN_UP"
@@ -20,6 +21,7 @@ fun Navigation(
 
     navController: NavHostController = rememberNavController(),
     loginViewModel: LoginViewModel,
+    homeViewModel: HomeViewModel,
 
     ) {
 
@@ -28,9 +30,6 @@ fun Navigation(
             LoginScreen(onNavToSignUpPage = {
                 navController.navigate(SIGN_UP) {
                     launchSingleTop = true
-                    popUpTo(route = LOGIN) {
-                        inclusive = true
-                    }
                 }
             }, onNavToHomePage = {
                 navController.navigate(HOME) {
@@ -59,7 +58,15 @@ fun Navigation(
             }, loginViewModel = loginViewModel)
         }
         composable(route = HOME) {
-            Home()
+            Home(homeViewModel,
+                onNavToLoginPage = {
+                    navController.navigate(LOGIN) {
+                        launchSingleTop = true
+                        popUpTo(route = SIGN_UP) {
+                            inclusive = true
+                        }
+                    }
+                })
         }
     }
 }
