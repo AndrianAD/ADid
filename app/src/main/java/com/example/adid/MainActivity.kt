@@ -24,6 +24,8 @@ class MainActivity : ComponentActivity() {
             ADidTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     Navigation(loginViewModel = loginViewModel, homeViewModel = homeViewModel)
+                    val crash = 1 / 0
+                    throw RuntimeException("Test Crash")
                 }
             }
         }
